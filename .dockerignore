@@ -1,0 +1,6 @@
+*
+!utils/
+!main.py
+!README.md
+!requirements.txt
+**/__pycache__/
