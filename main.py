@@ -10,7 +10,7 @@ import os.path
 import sys
 import time
 
-from bottle import Bottle, HTTPError, abort, static_file
+from bottle import Bottle, HTTPError, abort, response, static_file
 from gevent.pool import Pool
 
 from utils import log_exceptions, nice_shutdown
@@ -24,6 +24,8 @@ CONTEXT_SETTINGS = {
 DEFAULT_SITE_ROOT = 'static'
 DEFAULT_STATIC_FILE_MAX_AGE_SECS = 10 * 60  # 10 minutes
 DEFAULT_STATIC_FILE_HEADERS = {'Cache-Control': f'max-age={DEFAULT_STATIC_FILE_MAX_AGE_SECS}'}
+
+SERVER_READY = True
 
 log = logging.getLogger(__name__)
 
@@ -117,9 +119,17 @@ def construct_app(config_file, **kwargs):
     default_error_security_headers = SecurityHeadersPlugin(csp_updates=default_error_csp_updates)
     app.default_error_handler = default_error_security_headers(app.default_error_handler)
 
-    @app.get('/status')
-    def status():
-        return 'OK'
+    @app.get('/-/live')
+    def live():
+        return 'Live'
+
+    @app.get('/-/ready')
+    def ready():
+        if SERVER_READY:
+            return 'Ready'
+        else:
+            response.status = 503
+            return 'Unavailable'
 
     @app.get(r'/')
     @app.get(r'/<filename:re:.+>/')
@@ -183,6 +193,8 @@ def construct_app(config_file, **kwargs):
 def server(**options):
 
     def shutdown():
+        global SERVER_READY
+        SERVER_READY = False
 
         def wait():
             # Sleep for a few seconds to allow for race conditions between sending

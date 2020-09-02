@@ -4,15 +4,25 @@ Wrap static sites in a simple Docker container for deployment on Kubernetes (or 
 
 [Source Code](https://github.com/braedon/bottler) | [Docker Image](https://hub.docker.com/r/braedon/bottler)
 
-# How? And Why?
+# How?
 
-Bottler the [Bottle micro web-framework](https://bottlepy.org/) on a [gevent WSGI server](https://www.gevent.org/).
+Bottler serves your site with the [Bottle micro web-framework](https://bottlepy.org/) on a [gevent WSGI server](https://www.gevent.org/).
 
-Why not just use a standard webserver like Nginx? Bottler provides structured request logging and strict [security headers](https://securityheaders.com/) out of the box.
+# Why?
 
-# :warning: Here Be Dragons
+Why not just use a standard webserver like Nginx?
 
-Take note of the default values for the [Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) and [Expect-CT](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT) headers before deploying. These headers can cause long term issues if not set correctly for your site.
+Bottler provides strict [security headers](https://securityheaders.com/) out of the box, which you can relax as needed based on the needs of your site.
+
+It's also designed to be simple to deploy on container services.
+
+* JSON structured request logging (enable with the `--json` option),
+* Graceful shutdown on `SIGINT` and `SIGTERM`,
+* `/-/live` and `/-/ready` endpoints for liveness and readiness probes.
+
+**:warning: Here Be Dragons**
+
+Take note of the default values for the [Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security) and [Expect-CT](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT) headers in the [site config file](#site-config-file) before deploying. These headers can cause long term issues if not set correctly for your site.
 
 # Quickstart
 
