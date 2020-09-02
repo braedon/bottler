@@ -53,14 +53,21 @@ Bottler accepts a few CLI flags:
 Usage: main.py [OPTIONS]
 
 Options:
-  -c, --config-file FILE  Path to the site config file. Can be absolute, or
-                          relative to the current working directory. (default:
-                          site.cfg)
+  -c, --config-file FILE    Path to the site config file. Can be absolute, or
+                            relative to the current working directory.
+                            (default: site.cfg)
 
-  -p, --port INTEGER      Port to serve on. (default=8080)
-  -j, --json              Log in json.
-  -v, --verbose           Log debug messages.
-  -h, --help              Show this message and exit.
+  -p, --port INTEGER        Port to serve on. (default=8080)
+  --shutdown-sleep INTEGER  How many seconds to sleep during graceful
+                            shutdown. (default=10)
+
+  --shutdown-wait INTEGER   How many seconds to wait for active connections to
+                            close during graceful shutdown (after sleeping).
+                            (default=10)
+
+  -j, --json                Log in json.
+  -v, --verbose             Log debug messages.
+  -h, --help                Show this message and exit.
 ```
 
 Any options placed after the image name (`bottler`) will be passed to the process inside the container. For example, enable structured logging with `--json`:

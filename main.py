@@ -4,14 +4,16 @@ from gevent import monkey; monkey.patch_all()
 import bottle
 import click
 import configparser
+import gevent
 import logging
 import os.path
+import sys
 import time
 
 from bottle import Bottle, HTTPError, abort, static_file
 from gevent.pool import Pool
 
-from utils import log_exceptions, nice_shutdown, graceful_cleanup
+from utils import log_exceptions, nice_shutdown
 from utils.logging import configure_logging, wsgi_log_middleware
 from utils.security_headers import SecurityHeadersPlugin
 
@@ -168,29 +170,43 @@ def construct_app(config_file, **kwargs):
                    '(default: site.cfg)')
 @click.option('--port', '-p', default=8080,
               help='Port to serve on. (default=8080)')
+@click.option('--shutdown-sleep', default=10,
+              help='How many seconds to sleep during graceful shutdown. (default=10)')
+@click.option('--shutdown-wait', default=10,
+              help='How many seconds to wait for active connections to close during graceful '
+                   'shutdown (after sleeping). (default=10)')
 @click.option('--json', '-j', default=False, is_flag=True,
               help='Log in json.')
 @click.option('--verbose', '-v', default=False, is_flag=True,
               help='Log debug messages.')
 @log_exceptions(exit_on_exception=True)
-@nice_shutdown()
 def server(**options):
 
-    def graceful_shutdown():
-        log.info('Starting graceful shutdown.')
-        # Sleep for a few seconds to allow for race conditions between sending
-        # the SIGTERM and load balancers stopping sending traffic here and
-        time.sleep(5)
-        # Allow any running requests to complete before exiting.
-        # Socket is still open, so assumes no new traffic is reaching us.
-        gevent_pool.join()
+    def shutdown():
+
+        def wait():
+            # Sleep for a few seconds to allow for race conditions between sending
+            # the SIGTERM and load balancers stopping sending traffic here.
+            log.info('Shutdown: Sleeping %(sleep_s)s seconds.',
+                     {'sleep_s': options['shutdown_sleep']})
+            time.sleep(options['shutdown_sleep'])
+
+            log.info('Shutdown: Waiting up to %(wait_s)s seconds for connections to close.',
+                     {'wait_s': options['shutdown_sleep']})
+            gevent_pool.join(timeout=options['shutdown_wait'])
+
+            log.info('Shutdown: Exiting.')
+            sys.exit()
+
+        # Run in greenlet, as we can't block in a signal hander.
+        gevent.spawn(wait)
 
     configure_logging(json=options['json'], verbose=options['verbose'])
 
     app = construct_app(**options)
     app = wsgi_log_middleware(app)
 
-    with graceful_cleanup(graceful_shutdown):
+    with nice_shutdown(shutdown=shutdown):
         bottle.run(app,
                    host='0.0.0.0', port=options['port'],
                    server='gevent', spawn=gevent_pool,
