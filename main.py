@@ -68,6 +68,9 @@ def construct_app(config_file, **kwargs):
         headers = ['Strict-Transport-Security',
                    'Expect-CT',
                    'Referrer-Policy',
+                   'Cross-Origin-Opener-Policy',
+                   'Cross-Origin-Embedder-Policy',
+                   'Cross-Origin-Resource-Policy',
                    'X-XSS-Protection',
                    'X-Content-Type-Options',
                    'X-Frame-Options']

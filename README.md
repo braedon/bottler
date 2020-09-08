@@ -122,6 +122,9 @@ Cache-Control = max-age=600
 Strict-Transport-Security = max-age=63072000; includeSubDomains; preload
 Expect-CT = max-age=86400, enforce
 Referrer-Policy = no-referrer, strict-origin-when-cross-origin
+Cross-Origin-Opener-Policy = same-origin
+Cross-Origin-Embedder-Policy = require-corp
+Cross-Origin-Resource-Policy = same-origin
 X-XSS-Protection = 1; mode=block
 X-Content-Type-Options = nosniff
 X-Frame-Options = DENY
