@@ -57,10 +57,12 @@ class SecurityHeadersPlugin(object):
         'oversized-images': "'none'",
         'payment': "'none'",
         'picture-in-picture': "'none'",
-        'publickey-credentials': "'none'",
+        'publickey-credentials-get': "'none'",
+        'screen-wake-lock': "'none'",
         'sync-xhr': "'none'",
         'usb': "'none'",
         'wake-lock': "'none'",
+        'web-share': "'none'",
         'xr-spatial-tracking': "'none'",
     }
 
