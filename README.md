@@ -12,7 +12,7 @@ Bottler serves your site with the [Bottle micro web-framework](https://bottlepy.
 
 Why not just use a standard webserver like Nginx?
 
-Bottler provides strict [security headers](https://securityheaders.com/) out of the box, which you can relax as needed based on the needs of your site.
+Bottler provides strict [security headers](https://securityheaders.com/) out of the box, which you can relax based on the needs of your site.
 
 It's also designed to be simple to deploy on container services.
 
@@ -138,38 +138,39 @@ frame-ancestors = 'none'
 # Some directives don't have values
 block-all-mixed-content
 
-# Configure policy directives for the `Feature-Policy` header.
+# Configure policy directives for the `Permissions-Policy` header.
+# The `Feature-Policy` header is also set for compatibility.
 # The default directives are shown here.
 # Their values can be overridden, and new directives can be set.
 # Set a default directive to `false` to remove it entirely.
-[Feature-Policy]
-accelerometer = 'none'
-ambient-light-sensor = 'none'
-autoplay = 'none'
-battery = 'none'
-camera = 'none'
-display-capture = 'none'
-document-domain = 'none'
-encrypted-media = 'none'
-execution-while-not-rendered = 'none'
-execution-while-out-of-viewport = 'none'
-fullscreen = 'none'
-geolocation = 'none'
-gyroscope = 'none'
-layout-animations = 'none'
-legacy-image-formats = 'none'
-magnetometer = 'none'
-microphone = 'none'
-midi = 'none'
-navigation-override = 'none'
-oversized-images = 'none'
-payment = 'none'
-picture-in-picture = 'none'
-publickey-credentials-get = 'none'
-screen-wake-lock = 'none'
-sync-xhr = 'none'
-usb = 'none'
-wake-lock = 'none'
-web-share = 'none'
-xr-spatial-tracking = 'none'
+[Permissions-Policy]
+accelerometer = ()
+ambient-light-sensor = ()
+autoplay = ()
+battery = ()
+camera = ()
+display-capture = ()
+document-domain = ()
+encrypted-media = ()
+execution-while-not-rendered = ()
+execution-while-out-of-viewport = ()
+fullscreen = ()
+geolocation = ()
+gyroscope = ()
+layout-animations = ()
+legacy-image-formats = ()
+magnetometer = ()
+microphone = ()
+midi = ()
+navigation-override = ()
+oversized-images = ()
+payment = ()
+picture-in-picture = ()
+publickey-credentials-get = ()
+screen-wake-lock = ()
+sync-xhr = ()
+usb = ()
+wake-lock = ()
+web-share = ()
+xr-spatial-tracking = ()
 ```

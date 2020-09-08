@@ -1,6 +1,14 @@
 import functools
+import logging
+import re
 
 from bottle import HTTPResponse, response
+
+
+PP_ALLOWLIST_REGEX = re.compile(r'^\((.*)\)$')
+PP_ORIGIN_REGEX = re.compile(r'^"(.*)"$')
+
+log = logging.getLogger(__name__)
 
 
 def ensure_headers(r, headers):
@@ -10,6 +18,44 @@ def ensure_headers(r, headers):
     for k, v in headers.items():
         if k not in r.headers:
             r.set_header(k, v)
+
+
+def pp_origin_to_fp(origin):
+    if origin == '*':
+        return '*'
+
+    if origin == 'self':
+        return "'self'"
+
+    match = PP_ORIGIN_REGEX.match(origin)
+    if match is None:
+        return None
+
+    return match.group(1)
+
+
+def pp_allowlist_to_fp(allowlist):
+    if allowlist == '*':
+        return '*'
+
+    if allowlist == 'self':
+        return "'self'"
+
+    match = PP_ALLOWLIST_REGEX.match(allowlist)
+    if match is None:
+        return None
+
+    allowlist = match.group(1).split()
+
+    if len(allowlist) == 0:
+        return "'none'"
+
+    allowlist = [pp_origin_to_fp(origin) for origin in allowlist]
+
+    if any(origin is None for origin in allowlist):
+        return None
+
+    return ' '.join(allowlist)
 
 
 class SecurityHeadersPlugin(object):
@@ -34,48 +80,48 @@ class SecurityHeadersPlugin(object):
         # Other directives
         'block-all-mixed-content': True,
     }
-    fp_defaults = {
-        'accelerometer': "'none'",
-        'ambient-light-sensor': "'none'",
-        'autoplay': "'none'",
-        'battery': "'none'",
-        'camera': "'none'",
-        'display-capture': "'none'",
-        'document-domain': "'none'",
-        'encrypted-media': "'none'",
-        'execution-while-not-rendered': "'none'",
-        'execution-while-out-of-viewport': "'none'",
-        'fullscreen': "'none'",
-        'geolocation': "'none'",
-        'gyroscope': "'none'",
-        'layout-animations': "'none'",
-        'legacy-image-formats': "'none'",
-        'magnetometer': "'none'",
-        'microphone': "'none'",
-        'midi': "'none'",
-        'navigation-override': "'none'",
-        'oversized-images': "'none'",
-        'payment': "'none'",
-        'picture-in-picture': "'none'",
-        'publickey-credentials-get': "'none'",
-        'screen-wake-lock': "'none'",
-        'sync-xhr': "'none'",
-        'usb': "'none'",
-        'wake-lock': "'none'",
-        'web-share': "'none'",
-        'xr-spatial-tracking': "'none'",
+    pp_defaults = {
+        'accelerometer': '()',
+        'ambient-light-sensor': '()',
+        'autoplay': '()',
+        'battery': '()',
+        'camera': '()',
+        'display-capture': '()',
+        'document-domain': '()',
+        'encrypted-media': '()',
+        'execution-while-not-rendered': '()',
+        'execution-while-out-of-viewport': '()',
+        'fullscreen': '()',
+        'geolocation': '()',
+        'gyroscope': '()',
+        'layout-animations': '()',
+        'legacy-image-formats': '()',
+        'magnetometer': '()',
+        'microphone': '()',
+        'midi': '()',
+        'navigation-override': '()',
+        'oversized-images': '()',
+        'payment': '()',
+        'picture-in-picture': '()',
+        'publickey-credentials-get': '()',
+        'screen-wake-lock': '()',
+        'sync-xhr': '()',
+        'usb': '()',
+        'wake-lock': '()',
+        'web-share': '()',
+        'xr-spatial-tracking': '()',
     }
 
-    def __init__(self, sh_updates=None, csp_updates=None, fp_updates=None):
+    def __init__(self, sh_updates=None, csp_updates=None, pp_updates=None):
         if sh_updates:
             self.sh_defaults = {**self.sh_defaults,
                                 **sh_updates}
         if csp_updates:
             self.csp_defaults = {**self.csp_defaults,
                                  **csp_updates}
-        if fp_updates:
-            self.fp_defaults = {**self.fp_defaults,
-                                **fp_updates}
+        if pp_updates:
+            self.pp_defaults = {**self.pp_defaults,
+                                **pp_updates}
 
     def get_sh(self, sh_updates=None):
         sh_dict = self.sh_defaults
@@ -99,22 +145,40 @@ class SecurityHeadersPlugin(object):
 
         return '; '.join(csp_entries)
 
-    def get_fp(self, fp_updates=None):
-        fp_dict = self.fp_defaults
-        if fp_updates:
-            fp_dict = {**fp_dict, **fp_updates}
+    def get_pp(self, pp_updates=None):
+        pp_dict = self.pp_defaults
+        if pp_updates:
+            pp_dict = {**pp_dict, **pp_updates}
+
+        pp_entries = []
+        for k, v in pp_dict.items():
+            if v is not False:
+                pp_entries.append(f'{k}={v}')
+
+        return ', '.join(pp_entries)
+
+    def get_fp(self, pp_updates=None):
+        pp_dict = self.pp_defaults
+        if pp_updates:
+            pp_dict = {**pp_dict, **pp_updates}
 
         fp_entries = []
-        for k, v in fp_dict.items():
+        for k, v in pp_dict.items():
             if v is not False:
-                fp_entries.append(f'{k} {v}')
+                v = pp_allowlist_to_fp(v)
+                if v is None:
+                    log.warning('Permissions-Policy directive %(directive)s allowlist is invalid. '
+                                'Can\'t convert directive to Feature-Policy header.',
+                                {'directive': k})
+                else:
+                    fp_entries.append(f'{k} {v}')
 
         return '; '.join(fp_entries)
 
     def apply(self, callback, route=None):
         sh_updates = route.config.get('sh_updates') if route else None
         csp_updates = route.config.get('sh_csp_updates') if route else None
-        fp_updates = route.config.get('sh_fp_updates') if route else None
+        pp_updates = route.config.get('sh_pp_updates') if route else None
         # Bottle flattens dictionaries passed into route config for some reason,
         # so need to un-flatten the dicts.
         if route:
@@ -128,15 +192,16 @@ class SecurityHeadersPlugin(object):
                 prefix_len = len(prefix)
                 csp_updates = {k[prefix_len:]: v for k, v in route.config.items()
                                if k[:prefix_len] == prefix}
-            if not fp_updates:
-                prefix = 'sh_fp_updates.'
+            if not pp_updates:
+                prefix = 'sh_pp_updates.'
                 prefix_len = len(prefix)
-                fp_updates = {k[prefix_len:]: v for k, v in route.config.items()
+                pp_updates = {k[prefix_len:]: v for k, v in route.config.items()
                               if k[:prefix_len] == prefix}
 
         headers = {**self.get_sh(sh_updates=sh_updates),
                    'Content-Security-Policy': self.get_csp(csp_updates=csp_updates),
-                   'Feature-Policy': self.get_fp(fp_updates=fp_updates)}
+                   'Permissions-Policy': self.get_pp(pp_updates=pp_updates),
+                   'Feature-Policy': self.get_fp(pp_updates=pp_updates)}
 
         @functools.wraps(callback)
         def wrapper(*args, **kwargs):

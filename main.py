@@ -91,8 +91,8 @@ def construct_app(config_file, **kwargs):
         csp_updates = {k: parse_v(v)
                        for k, v in config['Content-Security-Policy'].items()}
 
-    fp_updates = None
-    if 'Feature-Policy' in config:
+    pp_updates = None
+    if 'Permissions-Policy' in config:
 
         def parse_v(v):
             # If the value is `false`, don't include the directive.
@@ -100,8 +100,8 @@ def construct_app(config_file, **kwargs):
                 return False
             return v
 
-        fp_updates = {k: parse_v(v)
-                      for k, v in config['Feature-Policy'].items()}
+        pp_updates = {k: parse_v(v)
+                      for k, v in config['Permissions-Policy'].items()}
 
     static_file_headers = DEFAULT_STATIC_FILE_HEADERS
     if sfh_updates:
@@ -111,7 +111,7 @@ def construct_app(config_file, **kwargs):
 
     security_headers = SecurityHeadersPlugin(sh_updates=sh_updates,
                                              csp_updates=csp_updates,
-                                             fp_updates=fp_updates)
+                                             pp_updates=pp_updates)
     app.install(security_headers)
 
     default_error_csp_updates = {'img-src': "'self'",
