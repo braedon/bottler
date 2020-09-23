@@ -142,7 +142,7 @@ def construct_app(config_file, **kwargs):
         else:
             filename = os.path.join(filename, 'index.html')
 
-        resp = static_file(filename, root=site_root, headers=static_file_headers)
+        resp = static_file(filename, root=site_root, headers=static_file_headers.copy())
 
         # static_file() can return a variety of 4xx errors, with messages that aren't ideal.
         # Just use a standard 404 instead.
@@ -153,7 +153,7 @@ def construct_app(config_file, **kwargs):
 
     @app.get(r'/<filename:re:.+>')
     def file(filename):
-        resp = static_file(filename, root=site_root, headers=static_file_headers)
+        resp = static_file(filename, root=site_root, headers=static_file_headers.copy())
 
         # static_file() can return a variety of 4xx errors, with messages that aren't ideal.
         # Just use a standard 404 instead.
