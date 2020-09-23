@@ -6,5 +6,5 @@
 # 		> pip3 uninstall bottle
 git+git://github.com/braedon/bottle@improve-wsgi-error-handling-013#egg=bottle
 click==7.1.2
-gevent==20.6.0
+gevent==20.9.0
 jog==0.1.1
