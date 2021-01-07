@@ -109,6 +109,9 @@ def construct_app(config_file, **kwargs):
     static_file_headers = DEFAULT_STATIC_FILE_HEADERS
     if sfh_updates:
         static_file_headers = {**static_file_headers, **sfh_updates}
+        static_file_headers = {k: v
+                               for k, v in static_file_headers.items()
+                               if v is not False}
 
     app = Bottle()
 
