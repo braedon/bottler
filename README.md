@@ -112,6 +112,7 @@ NotFound = 404.html
 # Set a default header to `false` to remove it entirely.
 [StaticFileHeaders]
 Cache-Control = max-age=600
+Access-Control-Allow-Origin = false
 
 # Configure security headers that are returned when serving the static files.
 # Also used for the `NotFound` page, if configured.

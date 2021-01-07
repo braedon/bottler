@@ -53,7 +53,7 @@ def construct_app(config_file, **kwargs):
 
         sfh_updates = {}
 
-        headers = ['Cache-Control']
+        headers = ['Cache-Control', 'Access-Control-Allow-Origin']
         for header in headers:
             value = sfh_config.get(header)
             if value is not None:
