@@ -180,10 +180,10 @@ def construct_app(config_file, **kwargs):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.option('--config-file', '-c', default='site.cfg', type=click.Path(dir_okay=False),
+@click.option('--config-file', '-c', default='config/site.cfg', type=click.Path(dir_okay=False),
               help='Path to the site config file. '
                    'Can be absolute, or relative to the current working directory. '
-                   '(default: site.cfg)')
+                   '(default: config/site.cfg)')
 @click.option('--port', '-p', default=8080,
               help='Port to serve on. (default=8080)')
 @click.option('--shutdown-sleep', default=10,

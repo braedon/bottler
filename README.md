@@ -43,7 +43,7 @@ A config file can also be mounted in:
 ```bash
 > sudo docker run --rm \
     -v <path to static files>:/site/static \
-    -v <path to config file>:/site/site.cfg \
+    -v <path to config file>:/site/config/site.cfg \
     -p <host port>:8080 \
     braedon/bottler
 ```
@@ -53,7 +53,7 @@ If you don't want to mount the config and site files at run time, you can extend
 FROM braedon/bottler
 
 COPY <path to static files> /site/static
-COPY <path to config file> /site/site.cfg
+COPY <path to config file> /site/config/site.cfg
 ```
 
 # CLI Options
@@ -65,7 +65,7 @@ Usage: main.py [OPTIONS]
 Options:
   -c, --config-file FILE    Path to the site config file. Can be absolute, or
                             relative to the current working directory.
-                            (default: site.cfg)
+                            (default: config/site.cfg)
 
   -p, --port INTEGER        Port to serve on. (default=8080)
   --shutdown-sleep INTEGER  How many seconds to sleep during graceful
